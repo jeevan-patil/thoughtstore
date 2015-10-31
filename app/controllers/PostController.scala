@@ -14,51 +14,52 @@ import play.modules.reactivemongo.{
   MongoController, ReactiveMongoApi, ReactiveMongoComponents
 }
 
-class Posts @Inject() (val reactiveMongoApi: ReactiveMongoApi)
-    extends Controller with MongoController with ReactiveMongoComponents {
+class PostController @Inject() (val reactiveMongoApi: ReactiveMongoApi) 
+      extends Controller with MongoController with ReactiveMongoComponents {
 
   import controllers.PostFields._
 
-  def postRepo = new backend.PostMongoRepo(reactiveMongoApi)
+  var postService = new service.PostServiceImpl(reactiveMongoApi)
 
   def list = Action.async {implicit request =>
-    postRepo.find()
+    postService.find()
       .map(posts => Ok(Json.toJson(posts.reverse)))
       .recover {case PrimaryUnavailableException => InternalServerError("Please install MongoDB")}
   }
 
   def like(id: String) = Action.async(BodyParsers.parse.json) { implicit request =>
     val value = (request.body \ Favorite).as[Boolean]
-    postRepo.update(BSONDocument(Id -> BSONObjectID(id)), BSONDocument("$set" -> BSONDocument(Favorite -> value)))
+    postService.update(BSONDocument(Id -> BSONObjectID(id)), BSONDocument("$set" -> BSONDocument(Favorite -> value)))
       .map(le => Ok(Json.obj("success" -> le.ok)))
   }
 
   def update(id: String) = Action.async(BodyParsers.parse.json) { implicit request =>
     val value = (request.body \ Text).as[String]
-    postRepo.update(BSONDocument(Id -> BSONObjectID(id)), BSONDocument("$set" -> BSONDocument(Text -> value)))
+    postService.update(BSONDocument(Id -> BSONObjectID(id)), BSONDocument("$set" -> BSONDocument(Text -> value)))
       .map(le => Ok(Json.obj("success" -> le.ok)))
   }
 
   def delete(id: String) = Action.async {
-    postRepo.remove(BSONDocument(Id -> BSONObjectID(id)))
-      .map(le => RedirectAfterPost(le, routes.Posts.list()))
+    postService.remove(BSONDocument(Id -> BSONObjectID(id)))
+      .map(le => RedirectAfterPost(le))
   }
-
-  private def RedirectAfterPost(result: WriteResult, call: Call): Result =
-    if (result.inError) InternalServerError(result.toString)
-    else Redirect(call)
 
   def add = Action.async(BodyParsers.parse.json) { implicit request =>
     val username = (request.body \ Username).as[String]
     val text = (request.body \ Text).as[String]
     val avatar = (request.body \ Avatar).as[String]
-    postRepo.save(BSONDocument(
+    postService.save(BSONDocument(
       Text -> text,
       Username -> username,
       Avatar -> avatar,
       Favorite -> false
-    )).map(le => Redirect(routes.Posts.list()))
+    )).map(le => Redirect("/api/posts", 200))
   }
+
+  private def RedirectAfterPost(result: WriteResult): Result =
+    if (result.inError) InternalServerError(result.toString)
+    else Redirect("/api/posts", 200)
+
 }
 
 object PostFields {

@@ -1,4 +1,4 @@
-package backend
+package service
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -8,7 +8,7 @@ import play.api.libs.json.{ JsObject, Json }
 import reactivemongo.bson.BSONDocument
 import reactivemongo.api.commands.WriteResult
 
-trait PostRepo {
+trait PostService {
   def find()(implicit ec: ExecutionContext): Future[List[JsObject]]
 
   def update(selector: BSONDocument, update: BSONDocument)(implicit ec: ExecutionContext): Future[WriteResult]
