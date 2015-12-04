@@ -1,15 +1,16 @@
 package backend
 
-import javax.inject.Inject
-import scala.concurrent.{ ExecutionContext, Future }
-import play.modules.reactivemongo.json.collection.JSONCollection
-import play.modules.reactivemongo.{
-  MongoController, ReactiveMongoApi, ReactiveMongoComponents
-}
+import scala.annotation.implicitNotFound
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
+import javax.inject.Inject
 import play.api.libs.json.{ JsObject, Json }
-import reactivemongo.bson.BSONDocument
+import play.modules.reactivemongo.{ ReactiveMongoApi, ReactiveMongoComponents }
+import play.modules.reactivemongo.json.JsObjectDocumentWriter
+import play.modules.reactivemongo.json.collection.JSONCollection
 import reactivemongo.api.commands.WriteResult
+import reactivemongo.bson.BSONDocument
 
 class PostRepositoryImpl @Inject() (val reactiveMongoApi: ReactiveMongoApi) extends PostRepo with ReactiveMongoComponents {
   // BSON-JSON conversions

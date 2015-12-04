@@ -1,12 +1,12 @@
 package backend
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.annotation.implicitNotFound
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
 
-import play.api.Play.current
-import play.api.libs.json.{ JsObject, Json }
-
-import reactivemongo.bson.BSONDocument
+import play.api.libs.json.JsObject
 import reactivemongo.api.commands.WriteResult
+import reactivemongo.bson.BSONDocument
 
 trait PostRepo {
   def find()(implicit ec: ExecutionContext): Future[List[JsObject]]

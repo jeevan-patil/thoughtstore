@@ -1,25 +1,22 @@
 package controllers
 
 import javax.inject.Inject
-
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.concurrent.Execution.Implicits._
+import play.api.libs.json.JsValue.jsValueToJsLookup
 import play.api.libs.json.Json
-import play.api.mvc.{ Action, BodyParsers, Call, Controller, Result }
-
-import reactivemongo.bson.{ BSONObjectID, BSONDocument }
-import reactivemongo.core.actors.Exceptions.PrimaryUnavailableException
+import play.api.libs.json.Json.toJsFieldJsValueWrapper
+import play.api.mvc.{ Action, BodyParsers, Controller, Result }
+import play.modules.reactivemongo.{ MongoController, ReactiveMongoApi, ReactiveMongoComponents }
 import reactivemongo.api.commands.WriteResult
+import reactivemongo.bson.{ BSONObjectID, BSONDocument }
+import reactivemongo.bson.Producer.nameValue2Producer
+import reactivemongo.core.actors.Exceptions.PrimaryUnavailableException
+import service.PostServiceImpl
 
-import play.modules.reactivemongo.{
-  MongoController, ReactiveMongoApi, ReactiveMongoComponents
-}
-
-class PostController @Inject() (val reactiveMongoApi: ReactiveMongoApi) 
-      extends Controller with MongoController with ReactiveMongoComponents {
+class PostController @Inject() (val postService: PostServiceImpl) 
+      extends Controller{
 
   import controllers.PostFields._
-
-  var postService = new service.PostServiceImpl(reactiveMongoApi)
 
   def list = Action.async {implicit request =>
     postService.find()
@@ -48,6 +45,7 @@ class PostController @Inject() (val reactiveMongoApi: ReactiveMongoApi)
     val username = (request.body \ Username).as[String]
     val text = (request.body \ Text).as[String]
     val avatar = (request.body \ Avatar).as[String]
+
     postService.save(BSONDocument(
       Text -> text,
       Username -> username,

@@ -1,12 +1,11 @@
 package service
 
+import scala.annotation.implicitNotFound
 import scala.concurrent.{ ExecutionContext, Future }
 
-import play.api.Play.current
-import play.api.libs.json.{ JsObject, Json }
-
-import reactivemongo.bson.BSONDocument
+import play.api.libs.json.JsObject
 import reactivemongo.api.commands.WriteResult
+import reactivemongo.bson.BSONDocument
 
 trait PostService {
   def find()(implicit ec: ExecutionContext): Future[List[JsObject]]
